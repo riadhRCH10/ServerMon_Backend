@@ -62,11 +62,20 @@ module.exports.updateServer = async (req,res) => {
 
 module.exports.deleteServer = async (req,res) => {
    try {
-      await serverSchema.findByIdAndDelete(req.params.id) 
-      return res.status(200).json({
-         status: "success",
-         message: "server deleted"
-      })
+      const serverToDelete = await serverSchema.findByIdAndDelete(req.params.id)
+      console.log(serverToDelete)
+      if (serverToDelete) {
+         return res.status(200).json({
+            status: "success",
+            message: "server deleted"
+         })
+      } else {
+         return res.status(200).json({
+            status: "failed",
+            message: "server not found"
+         })
+      }
+      
    } catch(e) {
       return res.status(400).json({
          status: "failed",
