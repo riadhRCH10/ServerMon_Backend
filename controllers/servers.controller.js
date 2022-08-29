@@ -1,19 +1,21 @@
 const serverSchema = require('../models/server.mongo')
 
 module.exports.getServers = async (req,res) => {
-    res.send("getting servers")
+   try {
+      const servers = await serverSchema.find({}).exec(); 
+      return res.status(200).json({
+         status: "success",
+         data: servers
+      })
+   }catch (e) {
+      console.log(e)
+   }
 }
 
 module.exports.addServer = async (req,res) => {
-    const { name, ip, password, operatingSystem, processor, installedRam, storage } = req.body
-    if (!ip) {  return res.status(400).json({
-            status: "failed",
-            message: "ip adress is required"
-        })
-     }
-
+    const { name, ipAdress, password, operatingSystem, processor, installedRam, storage } = req.body
      try {
-        const serverExists = await serverSchema.findOne({ipAdress : ip}).exec()
+        const serverExists = await serverSchema.findOne({ipAdress}).exec()
         if (serverExists) {
             return res.status(409).json({
                 status: "failed",
@@ -26,7 +28,7 @@ module.exports.addServer = async (req,res) => {
     
      const serverToAdd = new serverSchema({
         name,
-        ipAdress: ip,
+        ipAdress,
         installedRam,
         operatingSystem,
         password,
@@ -39,4 +41,36 @@ module.exports.addServer = async (req,res) => {
         status: "success",
         message: "server added"
      })
+}
+
+module.exports.updateServer = async (req,res) => {
+   try {
+      const updates = req.body
+      const updatedServer = await serverSchema.findByIdAndUpdate(req.params.id,updates)
+      return res.status(200).json({
+         status: "success",
+         message: "server upsated"
+      })
+   } catch(e) {
+      return res.status(401).json({
+         status: "failed",
+         message: e.message
+      })
+   }
+
+}
+
+module.exports.deleteServer = async (req,res) => {
+   try {
+      await serverSchema.findByIdAndDelete(req.params.id) 
+      return res.status(200).json({
+         status: "success",
+         message: "server deleted"
+      })
+   } catch(e) {
+      return res.status(400).json({
+         status: "failed",
+         message: e.message
+      })
+   }
 }
